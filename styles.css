@@ -237,16 +237,53 @@ main {
 
 .card {
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
   border-radius: var(--radius);
 }
 
-.card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+.card-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   gap: 12px;
+  align-items: center;
+  min-height: 92px;
+  padding: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.card-summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.card-summary::after {
+  content: "+";
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.card.is-expanded .card-summary::after {
+  content: "-";
+}
+
+.card-details {
+  display: none;
+  gap: 14px;
+  padding: 0 16px 16px;
+}
+
+.card.is-expanded .card-details {
+  display: grid;
 }
 
 .card h3 {
@@ -302,6 +339,7 @@ main {
   align-items: center;
   gap: 10px;
   min-height: var(--touch);
+  padding: 0 4px;
   font-size: 1rem;
   font-weight: 800;
 }

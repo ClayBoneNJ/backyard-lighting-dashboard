@@ -136,7 +136,7 @@ function renderControllers() {
 function createControlCard(options) {
   const saved = state.values.get(options.id) || { on: true, bri: 160, color: "#FFD6A0", effect: 0 };
   const card = document.createElement("article");
-  card.className = "card";
+  card.className = "card is-collapsed";
   card.dataset.cardId = options.id;
 
   const statusMarkup = options.type === "controller"
@@ -144,18 +144,19 @@ function createControlCard(options) {
     : "";
 
   card.innerHTML = `
-    <div class="card-header">
+    <div class="card-summary" data-action="toggle-card" role="button" tabindex="0" aria-expanded="false">
       <div>
         <h3>${escapeHtml(options.title)}</h3>
         <p class="card-meta">${escapeHtml(options.meta)}</p>
       </div>
-      ${statusMarkup}
-    </div>
-    <div class="control-grid">
       <label class="switch-row">
         <input data-field="on" type="checkbox" ${saved.on ? "checked" : ""}>
         <span>Power</span>
       </label>
+      ${statusMarkup}
+    </div>
+    <div class="card-details">
+      <div class="control-grid">
       <label class="control-row">
         <span class="control-label">Brightness</span>
         <input data-field="bri" type="range" min="1" max="255" value="${saved.bri}">
@@ -170,12 +171,40 @@ function createControlCard(options) {
           ${effects.map(effect => `<option value="${effect.value}" ${Number(saved.effect) === effect.value ? "selected" : ""}>${effect.label}</option>`).join("")}
         </select>
       </label>
-    </div>
-    <div class="card-actions">
-      <button class="primary-action" data-action="apply" type="button">Apply</button>
-      ${options.type === "controller" ? `<button data-action="test" type="button">Test</button>` : `<button data-action="group-on" type="button">Group On</button>`}
+      </div>
+      <div class="card-actions">
+        <button class="primary-action" data-action="apply" type="button">Apply</button>
+        ${options.type === "controller" ? `<button data-action="test" type="button">Test</button>` : `<button data-action="group-on" type="button">Group On</button>`}
+      </div>
     </div>
   `;
+
+  const toggleButton = card.querySelector('[data-action="toggle-card"]');
+  toggleButton.addEventListener("click", () => {
+    const isExpanded = card.classList.toggle("is-expanded");
+    card.classList.toggle("is-collapsed", !isExpanded);
+    toggleButton.setAttribute("aria-expanded", String(isExpanded));
+  });
+  toggleButton.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleButton.click();
+    }
+  });
+
+  card.querySelector(".switch-row").addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  card.querySelector('[data-field="on"]').addEventListener("change", (event) => {
+    if (options.type === "controller") {
+      clearFailures();
+      sendToControllers([options.id], { on: event.target.checked });
+    } else {
+      clearFailures();
+      sendToGroup(options.id, { on: event.target.checked });
+    }
+  });
 
   card.querySelector('[data-action="apply"]').addEventListener("click", () => {
     options.onApply(readCardValues(card));
