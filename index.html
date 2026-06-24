@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Backyard Lights</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>Backyard Lights</h1>
+          <p id="modeStatus" class="mode-status">Demo Mode - no real lights connected.</p>
+        </div>
+        <div class="header-meta" aria-label="System status">
+          <span id="currentTime">--:--</span>
+          <span>BackyardLights</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="overview">
+          <div>
+            <p class="eyebrow">Outdoor Lighting Control</p>
+            <h2>Evening scenes, group zones, and controller health.</h2>
+          </div>
+          <div class="summary-grid">
+            <div>
+              <span id="onlineCount">0</span>
+              <small>Online</small>
+            </div>
+            <div>
+              <span id="offlineCount">0</span>
+              <small>Offline</small>
+            </div>
+            <div>
+              <span id="controllerCount">0</span>
+              <small>Controllers</small>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-heading">
+            <h2>Scenes</h2>
+          </div>
+          <div id="sceneGrid" class="scene-grid"></div>
+        </section>
+
+        <section>
+          <div class="section-heading">
+            <h2>Groups</h2>
+          </div>
+          <div id="groupGrid" class="group-grid"></div>
+        </section>
+
+        <section>
+          <div class="section-heading">
+            <h2>Controllers</h2>
+          </div>
+          <div id="controllerGrid" class="controller-grid"></div>
+        </section>
+      </main>
+
+      <footer class="admin-panel">
+        <div class="admin-actions">
+          <label class="switch-row">
+            <input id="demoToggle" type="checkbox" checked>
+            <span>Demo Mode</span>
+          </label>
+          <button id="refreshStatus" type="button">Refresh Status</button>
+          <button id="exportConfig" type="button">Export Current Config</button>
+        </div>
+
+        <div class="log-panel">
+          <div>
+            <h2>Last Command Log</h2>
+            <p id="failureSummary" class="failure-summary">No failed controller requests.</p>
+          </div>
+          <pre id="commandLog" aria-live="polite">Ready.</pre>
+        </div>
+      </footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
