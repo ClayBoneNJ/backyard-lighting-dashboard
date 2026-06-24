@@ -1,18 +1,20 @@
 :root {
-  --bg: #090c12;
-  --panel: #111722;
-  --panel-strong: #171f2d;
-  --panel-soft: rgba(255, 255, 255, 0.07);
+  --bg: #05070b;
+  --panel: rgba(10, 14, 22, 0.78);
+  --panel-strong: rgba(15, 21, 32, 0.92);
+  --panel-soft: rgba(255, 255, 255, 0.045);
   --text: #f6f9ff;
-  --muted: #aeb9c9;
-  --accent: #49d7ff;
-  --accent-2: #ffb35f;
-  --accent-3: #72ffbb;
+  --muted: #97a6ba;
+  --accent: #67e8ff;
+  --accent-2: #8fffce;
+  --accent-3: #ffce7a;
   --danger: #ff6680;
-  --ok: #72ffbb;
+  --ok: #8fffce;
   --warn: #ffd166;
-  --border: rgba(255, 255, 255, 0.13);
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+  --border: rgba(143, 255, 206, 0.16);
+  --glow: rgba(103, 232, 255, 0.34);
+  --glow-soft: rgba(143, 255, 206, 0.16);
+  --shadow: 0 18px 52px rgba(0, 0, 0, 0.5), 0 0 34px rgba(103, 232, 255, 0.05);
   --radius: 8px;
   --touch: 54px;
 }
@@ -32,9 +34,9 @@ body {
   color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(73, 215, 255, 0.24), transparent 34rem),
-    radial-gradient(circle at 82% 18%, rgba(255, 179, 95, 0.18), transparent 28rem),
-    linear-gradient(145deg, #090c12 0%, #0d121b 48%, #07090e 100%);
+    radial-gradient(circle at 18% 0%, rgba(103, 232, 255, 0.18), transparent 32rem),
+    radial-gradient(circle at 82% 12%, rgba(143, 255, 206, 0.11), transparent 30rem),
+    linear-gradient(160deg, #05070b 0%, #080d14 48%, #030509 100%);
 }
 
 button,
@@ -48,9 +50,17 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
-  background: var(--panel-soft);
+  background: rgba(255, 255, 255, 0.035);
   cursor: pointer;
   touch-action: manipulation;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 0 18px rgba(103, 232, 255, 0.03);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease, transform 120ms ease;
+}
+
+button:hover {
+  border-color: rgba(103, 232, 255, 0.42);
+  background: rgba(103, 232, 255, 0.07);
+  box-shadow: 0 0 24px rgba(103, 232, 255, 0.1);
 }
 
 button:active {
@@ -68,7 +78,7 @@ button:active {
 .admin-panel,
 .card {
   border: 1px solid var(--border);
-  background: rgba(17, 23, 34, 0.82);
+  background: var(--panel);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
 }
@@ -93,6 +103,7 @@ h1 {
   margin-bottom: 6px;
   font-size: clamp(2rem, 5vw, 4.2rem);
   letter-spacing: 0;
+  text-shadow: 0 0 28px rgba(103, 232, 255, 0.18);
 }
 
 .mode-status,
@@ -110,6 +121,7 @@ h1 {
 
 .mode-status.live {
   color: var(--ok);
+  text-shadow: 0 0 18px rgba(143, 255, 206, 0.24);
 }
 
 .header-meta {
@@ -168,7 +180,7 @@ main {
   padding: 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.035);
   text-align: center;
 }
 
@@ -176,6 +188,8 @@ main {
   display: block;
   font-size: 2rem;
   font-weight: 800;
+  color: var(--accent);
+  text-shadow: 0 0 22px var(--glow);
 }
 
 .summary-grid small {
@@ -206,21 +220,29 @@ main {
   overflow: hidden;
   min-height: 82px;
   padding: 16px;
-  border-color: rgba(255, 255, 255, 0.18);
-  background: linear-gradient(135deg, rgba(73, 215, 255, 0.22), rgba(255, 179, 95, 0.16));
+  border-color: rgba(103, 232, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(103, 232, 255, 0.105), rgba(143, 255, 206, 0.035)),
+    rgba(255, 255, 255, 0.025);
   text-align: left;
   font-size: 1.08rem;
   font-weight: 800;
+}
+
+.scene-button:hover {
+  border-color: rgba(103, 232, 255, 0.55);
+  box-shadow: 0 0 34px rgba(103, 232, 255, 0.16);
 }
 
 .scene-button::after {
   content: "";
   position: absolute;
   inset: auto 12px 10px 12px;
-  height: 3px;
+  height: 2px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
-  opacity: 0.85;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
+  opacity: 0.7;
+  box-shadow: 0 0 16px var(--glow);
 }
 
 .group-grid {
@@ -252,6 +274,11 @@ main {
   padding: 16px;
   cursor: pointer;
   touch-action: manipulation;
+  background: linear-gradient(90deg, rgba(103, 232, 255, 0.04), transparent 70%);
+}
+
+.card-summary:hover {
+  background: linear-gradient(90deg, rgba(103, 232, 255, 0.08), rgba(143, 255, 206, 0.025) 70%);
 }
 
 .card-summary:focus-visible {
@@ -270,6 +297,7 @@ main {
   color: var(--accent);
   font-size: 1.3rem;
   font-weight: 800;
+  box-shadow: 0 0 18px rgba(103, 232, 255, 0.08);
 }
 
 .card.is-expanded .card-summary::after {
@@ -300,7 +328,7 @@ main {
   min-width: 84px;
   padding: 7px 9px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
   color: var(--muted);
   text-align: center;
   font-size: 0.9rem;
@@ -308,13 +336,15 @@ main {
 }
 
 .status-pill.online {
-  color: #062016;
-  background: var(--ok);
+  color: var(--ok);
+  background: rgba(143, 255, 206, 0.1);
+  box-shadow: 0 0 18px rgba(143, 255, 206, 0.16);
 }
 
 .status-pill.offline {
-  color: #27000a;
-  background: var(--danger);
+  color: var(--danger);
+  background: rgba(255, 102, 128, 0.11);
+  box-shadow: 0 0 18px rgba(255, 102, 128, 0.14);
 }
 
 .control-grid {
@@ -348,6 +378,7 @@ input[type="checkbox"] {
   width: 24px;
   height: 24px;
   accent-color: var(--accent);
+  filter: drop-shadow(0 0 8px rgba(103, 232, 255, 0.24));
 }
 
 input[type="range"] {
@@ -361,7 +392,7 @@ input[type="color"] {
   padding: 3px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
 }
 
 select {
@@ -370,7 +401,7 @@ select {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
-  background: #182131;
+  background: #0d141f;
   padding: 0 12px;
 }
 
@@ -381,8 +412,10 @@ select {
 }
 
 .primary-action {
-  background: linear-gradient(135deg, rgba(73, 215, 255, 0.36), rgba(114, 255, 187, 0.18));
+  border-color: rgba(103, 232, 255, 0.34);
+  background: linear-gradient(135deg, rgba(103, 232, 255, 0.18), rgba(143, 255, 206, 0.08));
   font-weight: 800;
+  box-shadow: 0 0 24px rgba(103, 232, 255, 0.1);
 }
 
 .admin-panel {
@@ -433,7 +466,7 @@ pre {
   padding: 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(0, 0, 0, 0.24);
   color: #dbe7ff;
   white-space: pre-wrap;
   font-size: 0.98rem;
