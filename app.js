@@ -5,8 +5,8 @@ const appConfig = {
 window.backyardAppLoaded = true;
 
 const controllers = [
-  { id: "cabana", name: "Cabana", ip: "192.168.0.161" },
-  { id: "kitchen", name: "Kitchen", ip: "192.168.0.31" }
+  { id: "cabana", name: "Cabana", ip: "192.168.0.161", segmentIds: [0, 1] },
+  { id: "kitchen", name: "Kitchen", ip: "192.168.0.31", segmentIds: [0] }
 ];
 
 const effects = [
@@ -110,7 +110,7 @@ function createControllerCard(controller) {
   });
 
   card.querySelector('[data-action="apply"]').addEventListener("click", () => {
-    sendToController(controller.id, controlReadoutToPayload(readCardValues(card)));
+    sendToController(controller.id, controlReadoutToPayload(controller, readCardValues(card)));
   });
 
   card.querySelector('[data-action="test"]').addEventListener("click", () => {
@@ -178,7 +178,9 @@ function updateLocalControllerStateFromWled(controllerId, data) {
   if (typeof wledState.bri === "number") current.bri = wledState.bri;
 
   if (wledState.seg && wledState.seg.length > 0) {
+    const controller = controllers.find(item => item.id === controllerId);
     const segment = wledState.seg[wledState.mainseg || 0] || wledState.seg[0];
+    if (controller) controller.segmentIds = wledState.seg.map(segment => segment.id);
     if (segment.col && segment.col[0]) current.color = rgbToHex(segment.col[0]);
     if (typeof segment.fx === "number") current.effect = segment.fx;
   }
@@ -221,7 +223,7 @@ async function testController(controllerId) {
   await sendWledCommand(controller, {
     on: true,
     bri: 255,
-    seg: [{ col: [hexToRgb("#FFFFFF")], fx: 1 }]
+    seg: buildSegmentPayload(controller, { col: [hexToRgb("#FFFFFF")], fx: 1 })
   });
 
   await delay(800);
@@ -229,16 +231,27 @@ async function testController(controllerId) {
   await sendWledCommand(controller, {
     on: true,
     bri: 160,
-    seg: [{ col: [hexToRgb("#FFD6A0")], fx: 0 }]
+    seg: buildSegmentPayload(controller, { col: [hexToRgb("#FFD6A0")], fx: 0 })
   });
 }
 
-function controlReadoutToPayload(readout) {
+function controlReadoutToPayload(controller, readout) {
   return {
     on: readout.on,
     bri: readout.bri,
-    seg: [{ col: [hexToRgb(readout.color)], fx: readout.effect }]
+    seg: buildSegmentPayload(controller, {
+      col: [hexToRgb(readout.color)],
+      fx: readout.effect
+    })
   };
+}
+
+function buildSegmentPayload(controller, values) {
+  const segmentIds = controller.segmentIds && controller.segmentIds.length
+    ? controller.segmentIds
+    : [0];
+
+  return segmentIds.map(segmentId => Object.assign({ id: segmentId }, values));
 }
 
 function readCardValues(card) {

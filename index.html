@@ -151,7 +151,7 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <div class="version-badge">v0.8</div>
+    <div class="version-badge">v0.9</div>
     <div id="networkWarning" class="network-warning" hidden></div>
     <main id="controllerGrid" class="controller-grid" aria-label="Backyard light controllers"></main>
 
@@ -168,8 +168,8 @@
         if (window.backyardAppLoaded) return;
 
         var controllers = [
-          { id: "cabana", name: "Cabana", ip: "192.168.0.161" },
-          { id: "kitchen", name: "Kitchen", ip: "192.168.0.31" }
+          { id: "cabana", name: "Cabana", ip: "192.168.0.161", segmentIds: [0, 1] },
+          { id: "kitchen", name: "Kitchen", ip: "192.168.0.31", segmentIds: [0] }
         ];
         var effects = [
           { label: "Solid", value: 0 },
@@ -234,7 +234,12 @@
           }
 
           if (wledState.seg && wledState.seg.length) {
+            var controllerId = card.getAttribute("data-controller-id");
+            var controller = controllers.filter(function (item) { return item.id === controllerId; })[0];
             var segment = wledState.seg[wledState.mainseg || 0] || wledState.seg[0];
+            if (controller) {
+              controller.segmentIds = wledState.seg.map(function (segment) { return segment.id; });
+            }
             if (segment.col && segment.col[0]) {
               card.querySelector('[data-field="color"]').value = rgbToHex(segment.col[0]);
             }
@@ -250,9 +255,19 @@
           });
         }
 
+        function buildSegmentPayload(controller, values) {
+          var segmentIds = controller.segmentIds && controller.segmentIds.length ? controller.segmentIds : [0];
+          return segmentIds.map(function (segmentId) {
+            var segmentPayload = { id: segmentId };
+            for (var key in values) segmentPayload[key] = values[key];
+            return segmentPayload;
+          });
+        }
+
         function renderCard(controller) {
           var card = document.createElement("article");
           card.className = "controller-card";
+          card.setAttribute("data-controller-id", controller.id);
           var options = "";
           for (var i = 0; i < effects.length; i++) {
             options += '<option value="' + effects[i].value + '">' + effects[i].label + "</option>";
@@ -274,16 +289,16 @@
             send(controller, {
               on: card.querySelector('[data-field="on"]').checked,
               bri: Number(card.querySelector('[data-field="bri"]').value),
-              seg: [{
+              seg: buildSegmentPayload(controller, {
                 col: [hexToRgb(card.querySelector('[data-field="color"]').value)],
                 fx: Number(card.querySelector('[data-field="effect"]').value)
-              }]
+              })
             });
           };
           card.querySelector('[data-action="test"]').onclick = function () {
-            send(controller, { on: true, bri: 255, seg: [{ col: [[255, 255, 255]], fx: 1 }] });
+            send(controller, { on: true, bri: 255, seg: buildSegmentPayload(controller, { col: [[255, 255, 255]], fx: 1 }) });
             setTimeout(function () {
-              send(controller, { on: true, bri: 160, seg: [{ col: [[255, 214, 160]], fx: 0 }] });
+              send(controller, { on: true, bri: 160, seg: buildSegmentPayload(controller, { col: [[255, 214, 160]], fx: 0 }) });
             }, 800);
           };
 

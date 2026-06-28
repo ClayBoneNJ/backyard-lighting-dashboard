@@ -1,4 +1,4 @@
-const CACHE_NAME = "backyard-lights-v0.8";
+const CACHE_NAME = "backyard-lights-v0.9";
 const APP_FILES = [
   "./",
   "./index.html",
