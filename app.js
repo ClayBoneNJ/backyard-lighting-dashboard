@@ -110,15 +110,11 @@ function createControllerCard(controller) {
 }
 
 async function sendWledCommand(controller, payload) {
-  const abortController = new AbortController();
-  const timeoutId = setTimeout(() => abortController.abort(), appConfig.requestTimeoutMs);
-
   try {
-    const response = await fetch(`http://${controller.ip}/json/state`, {
+    const response = await fetchWithTimeout(`http://${controller.ip}/json/state`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: abortController.signal
+      body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
@@ -131,7 +127,6 @@ async function sendWledCommand(controller, payload) {
     markControllerOffline(controller);
     console.warn(`${controller.name} command failed`, error);
   } finally {
-    clearTimeout(timeoutId);
     updateStatusDisplay();
   }
 }
@@ -144,13 +139,8 @@ function sendToController(controllerId, payload) {
 
 async function refreshStatus() {
   await Promise.all(controllers.map(async (controller) => {
-    const abortController = new AbortController();
-    const timeoutId = setTimeout(() => abortController.abort(), appConfig.requestTimeoutMs);
-
     try {
-      const response = await fetch(`http://${controller.ip}/json`, {
-        signal: abortController.signal
-      });
+      const response = await fetchWithTimeout(`http://${controller.ip}/json`);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -160,12 +150,26 @@ async function refreshStatus() {
     } catch (error) {
       markControllerOffline(controller);
       console.warn(`${controller.name} status check failed`, error);
-    } finally {
-      clearTimeout(timeoutId);
     }
   }));
 
   updateStatusDisplay();
+}
+
+function fetchWithTimeout(url, options = {}) {
+  if (!window.AbortController) {
+    return fetch(url, options);
+  }
+
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), appConfig.requestTimeoutMs);
+  const requestOptions = Object.assign({}, options, {
+    signal: abortController.signal
+  });
+
+  return fetch(url, requestOptions).finally(() => {
+    clearTimeout(timeoutId);
+  });
 }
 
 async function testController(controllerId) {
