@@ -4,6 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Backyard Lights</title>
+    <meta name="theme-color" content="#05070b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Backyard Lights">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
     <style>
       body {
         margin: 0;
@@ -146,11 +151,18 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <div class="version-badge">v0.6</div>
+    <div class="version-badge">v0.7</div>
     <div id="networkWarning" class="network-warning" hidden></div>
     <main id="controllerGrid" class="controller-grid" aria-label="Backyard light controllers"></main>
 
     <script src="app.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("sw.js").catch(function () {});
+        });
+      }
+    </script>
     <script>
       setTimeout(function () {
         if (window.backyardAppLoaded) return;
