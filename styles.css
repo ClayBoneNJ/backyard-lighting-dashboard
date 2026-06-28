@@ -43,6 +43,18 @@ body {
   opacity: 0.72;
 }
 
+.network-warning {
+  margin: 12px auto 0;
+  width: min(980px, calc(100% - 28px));
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 102, 128, 0.4);
+  border-radius: var(--radius);
+  color: #ffdce4;
+  background: rgba(255, 102, 128, 0.15);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
 button,
 input,
 select {

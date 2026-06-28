@@ -24,10 +24,19 @@ const els = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   els.controllerGrid = document.getElementById("controllerGrid");
+  els.networkWarning = document.getElementById("networkWarning");
+  updateNetworkWarning();
   seedState();
   renderControllers();
   refreshStatus();
 });
+
+function updateNetworkWarning() {
+  if (!els.networkWarning || window.location.protocol !== "https:") return;
+
+  els.networkWarning.hidden = false;
+  els.networkWarning.textContent = "Open http://192.168.0.149:8080 on the tablet for live light control.";
+}
 
 function seedState() {
   controllers.forEach((controller) => {
