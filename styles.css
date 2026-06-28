@@ -32,6 +32,17 @@ body {
     linear-gradient(160deg, #05070b 0%, #080d14 48%, #030509 100%);
 }
 
+.version-badge {
+  position: fixed;
+  top: 8px;
+  right: 10px;
+  z-index: 10;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.72;
+}
+
 button,
 input,
 select {
