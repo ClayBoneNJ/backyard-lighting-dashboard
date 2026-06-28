@@ -2,6 +2,8 @@ const appConfig = {
   requestTimeoutMs: 4500
 };
 
+window.backyardAppLoaded = true;
+
 const controllers = [
   { id: "cabana", name: "Cabana", ip: "192.168.0.161" },
   { id: "kitchen", name: "Kitchen", ip: "192.168.0.31" }

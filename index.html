@@ -4,13 +4,251 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Backyard Lights</title>
+    <style>
+      body {
+        margin: 0;
+        color: #f6f9ff;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #05070b;
+      }
+
+      .version-badge {
+        position: fixed;
+        top: 8px;
+        right: 10px;
+        z-index: 10;
+        color: #9baabd;
+        font-size: 0.78rem;
+        font-weight: 700;
+        opacity: 0.72;
+      }
+
+      .controller-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+        gap: 18px;
+        width: min(980px, 100%);
+        margin: 0 auto;
+        padding: 22px;
+      }
+
+      .controller-card {
+        display: grid;
+        gap: 18px;
+        padding: 18px;
+        border: 1px solid rgba(143, 255, 206, 0.16);
+        border-radius: 8px;
+        background: rgba(12, 16, 24, 0.88);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      h1,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        margin-bottom: 6px;
+        font-size: clamp(2rem, 4vw, 3.4rem);
+      }
+
+      p,
+      .control-row span {
+        color: #9baabd;
+      }
+
+      .status-pill {
+        min-width: 84px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.045);
+        color: #9baabd;
+        text-align: center;
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      .status-pill.online {
+        color: #8fffce;
+        background: rgba(143, 255, 206, 0.1);
+      }
+
+      .status-pill.offline {
+        color: #ff6680;
+        background: rgba(255, 102, 128, 0.11);
+      }
+
+      .power-row,
+      .control-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .power-row {
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        min-height: 56px;
+        font-size: 1.15rem;
+        font-weight: 800;
+      }
+
+      input[type="checkbox"] {
+        width: 28px;
+        height: 28px;
+        accent-color: #67e8ff;
+      }
+
+      input,
+      select,
+      button {
+        font: inherit;
+      }
+
+      input[type="range"],
+      input[type="color"],
+      select {
+        width: 100%;
+      }
+
+      input[type="color"],
+      select,
+      button {
+        min-height: 56px;
+        border: 1px solid rgba(143, 255, 206, 0.16);
+        border-radius: 8px;
+      }
+
+      select,
+      button {
+        color: #f6f9ff;
+        background: #0d141f;
+      }
+
+      .card-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      @media (max-width: 700px) {
+        .controller-grid {
+          grid-template-columns: 1fr;
+          padding: 14px;
+        }
+      }
+    </style>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <div class="version-badge">v0.5</div>
+    <div class="version-badge">v0.6</div>
     <div id="networkWarning" class="network-warning" hidden></div>
     <main id="controllerGrid" class="controller-grid" aria-label="Backyard light controllers"></main>
 
     <script src="app.js"></script>
+    <script>
+      setTimeout(function () {
+        if (window.backyardAppLoaded) return;
+
+        var controllers = [
+          { id: "cabana", name: "Cabana", ip: "192.168.0.161" },
+          { id: "kitchen", name: "Kitchen", ip: "192.168.0.31" }
+        ];
+        var effects = [
+          { label: "Solid", value: 0 },
+          { label: "Breathe", value: 2 },
+          { label: "Rainbow", value: 9 },
+          { label: "Twinkle", value: 20 },
+          { label: "Chase", value: 28 }
+        ];
+        var grid = document.getElementById("controllerGrid");
+
+        function request(method, url, payload, done) {
+          var xhr = new XMLHttpRequest();
+          xhr.open(method, url, true);
+          xhr.timeout = 4500;
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) done(xhr.status >= 200 && xhr.status < 300);
+          };
+          xhr.onerror = function () { done(false); };
+          xhr.ontimeout = function () { done(false); };
+          if (payload) xhr.setRequestHeader("Content-Type", "application/json");
+          xhr.send(payload ? JSON.stringify(payload) : null);
+        }
+
+        function setStatus(id, status) {
+          var pill = document.querySelector('[data-status-for="' + id + '"]');
+          if (!pill) return;
+          pill.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+          pill.className = "status-pill " + status;
+        }
+
+        function hexToRgb(hexColor) {
+          var normalized = hexColor.replace("#", "");
+          return [
+            parseInt(normalized.slice(0, 2), 16),
+            parseInt(normalized.slice(2, 4), 16),
+            parseInt(normalized.slice(4, 6), 16)
+          ];
+        }
+
+        function send(controller, payload) {
+          request("POST", "http://" + controller.ip + "/json/state", payload, function (ok) {
+            setStatus(controller.id, ok ? "online" : "offline");
+          });
+        }
+
+        function renderCard(controller) {
+          var card = document.createElement("article");
+          card.className = "controller-card";
+          var options = "";
+          for (var i = 0; i < effects.length; i++) {
+            options += '<option value="' + effects[i].value + '">' + effects[i].label + "</option>";
+          }
+
+          card.innerHTML =
+            '<header class="card-header"><div><h1>' + controller.name + '</h1><p>' + controller.ip + '</p></div>' +
+            '<span class="status-pill" data-status-for="' + controller.id + '">Unknown</span></header>' +
+            '<label class="power-row"><input data-field="on" type="checkbox" checked><span>Power</span></label>' +
+            '<label class="control-row"><span>Brightness</span><input data-field="bri" type="range" min="1" max="255" value="160"></label>' +
+            '<label class="control-row"><span>Color</span><input data-field="color" type="color" value="#FFD6A0"></label>' +
+            '<label class="control-row"><span>Effect</span><select data-field="effect">' + options + '</select></label>' +
+            '<div class="card-actions"><button data-action="apply" type="button">Apply</button><button data-action="test" type="button">Test</button></div>';
+
+          card.querySelector('[data-field="on"]').onchange = function (event) {
+            send(controller, { on: event.target.checked });
+          };
+          card.querySelector('[data-action="apply"]').onclick = function () {
+            send(controller, {
+              on: card.querySelector('[data-field="on"]').checked,
+              bri: Number(card.querySelector('[data-field="bri"]').value),
+              seg: [{
+                col: [hexToRgb(card.querySelector('[data-field="color"]').value)],
+                fx: Number(card.querySelector('[data-field="effect"]').value)
+              }]
+            });
+          };
+          card.querySelector('[data-action="test"]').onclick = function () {
+            send(controller, { on: true, bri: 255, seg: [{ col: [[255, 255, 255]], fx: 1 }] });
+            setTimeout(function () {
+              send(controller, { on: true, bri: 160, seg: [{ col: [[255, 214, 160]], fx: 0 }] });
+            }, 800);
+          };
+
+          grid.appendChild(card);
+          request("GET", "http://" + controller.ip + "/json", null, function (ok) {
+            setStatus(controller.id, ok ? "online" : "offline");
+          });
+        }
+
+        grid.innerHTML = "";
+        for (var i = 0; i < controllers.length; i++) renderCard(controllers[i]);
+      }, 300);
+    </script>
   </body>
 </html>
