@@ -157,6 +157,8 @@ async function refreshStatus() {
         throw new Error(`HTTP ${response.status}`);
       }
 
+      const data = await response.json();
+      updateLocalControllerStateFromWled(controller.id, data);
       markControllerOnline(controller);
     } catch (error) {
       markControllerOffline(controller);
@@ -165,6 +167,35 @@ async function refreshStatus() {
   }));
 
   updateStatusDisplay();
+}
+
+function updateLocalControllerStateFromWled(controllerId, data) {
+  const wledState = data && data.state ? data.state : data;
+  const current = state.values.get(controllerId) || {};
+  if (!wledState) return;
+
+  if (typeof wledState.on === "boolean") current.on = wledState.on;
+  if (typeof wledState.bri === "number") current.bri = wledState.bri;
+
+  if (wledState.seg && wledState.seg.length > 0) {
+    const segment = wledState.seg[wledState.mainseg || 0] || wledState.seg[0];
+    if (segment.col && segment.col[0]) current.color = rgbToHex(segment.col[0]);
+    if (typeof segment.fx === "number") current.effect = segment.fx;
+  }
+
+  state.values.set(controllerId, current);
+  updateControllerCardValues(controllerId);
+}
+
+function updateControllerCardValues(controllerId) {
+  const card = document.querySelector(`[data-controller-id="${controllerId}"]`);
+  const saved = state.values.get(controllerId);
+  if (!card || !saved) return;
+
+  card.querySelector('[data-field="on"]').checked = saved.on;
+  card.querySelector('[data-field="bri"]').value = saved.bri;
+  card.querySelector('[data-field="color"]').value = saved.color;
+  card.querySelector('[data-field="effect"]').value = saved.effect;
 }
 
 function fetchWithTimeout(url, options = {}) {
@@ -261,7 +292,10 @@ function hexToRgb(hexColor) {
 }
 
 function rgbToHex(rgb) {
-  return `#${rgb.map(value => value.toString(16).padStart(2, "0")).join("")}`;
+  return `#${rgb.slice(0, 3).map(value => {
+    const hex = Number(value || 0).toString(16);
+    return hex.length === 1 ? `0${hex}` : hex;
+  }).join("")}`;
 }
 
 function delay(ms) {
